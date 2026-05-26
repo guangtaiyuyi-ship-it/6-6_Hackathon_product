@@ -1,0 +1,6 @@
+# Pythonが自動生成するキャッシュフォルダ
+__pycache__/
+*.pyc
+
+# ユーザーのローカルデータ
+todos.json
