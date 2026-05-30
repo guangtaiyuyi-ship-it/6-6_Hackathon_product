@@ -72,9 +72,10 @@ class ScreensaverWindow(tk.Toplevel):
             active_todos = ["すべてのタスクが完了しました！", "素晴らしい一日を！"]
 
         self.items = [FloatingItem(self.canvas, text) for text in active_todos]
-        self.bind("<Any-KeyPress>", self.close_screensaver)
-        self.bind("<Motion>", self.close_screensaver)
-        self.bind("<Button-1>", self.close_screensaver)
+        self.bind("<Escape>", self.close_screensaver) 
+        self.bind("<Return>", self.close_screensaver)  
+        self.bind("<space>", self.close_screensaver)   
+        self.focus_set()
         self.animate()
 
     def animate(self):
