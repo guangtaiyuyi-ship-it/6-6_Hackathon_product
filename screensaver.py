@@ -71,7 +71,8 @@ class ScreensaverWindow(tk.Toplevel):
                     _, icon, color, item_speed_mult = todo_store.get_deadline_status(todo.get("deadline", ""))
                 else:
                     icon, color, item_speed_mult = "✅", "#33FF57", 1.0
-                display_text = f"{icon} {todo['text']}"
+                category_tag = f"[{todo.get('category', 'その他')}] "
+                display_text = f"{icon} {category_tag}{todo['text']}"
 
                 item = FloatingItem(self.canvas, display_text, color, item_speed_mult)
                 self.items.append(item)

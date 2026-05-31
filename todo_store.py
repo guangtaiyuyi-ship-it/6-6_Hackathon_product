@@ -17,7 +17,7 @@ def save_todos(todos):
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(todos, f, ensure_ascii=False, indent=4)
 
-def add_todo(text, deadline_str=""):
+def add_todo(text, deadline_str="", category="その他"):
     if not text.strip():
         return load_todos()  
 
@@ -26,7 +26,8 @@ def add_todo(text, deadline_str=""):
         "id": len(todos) + 1,  
         "text": text,
         "completed": False,  
-        "deadline": deadline_str
+        "deadline": deadline_str,
+        "category": category
     }
     todos.append(new_todo)
     save_todos(todos)
@@ -48,7 +49,6 @@ def remove_todo(todo_id):
     return todos
 
 def get_deadline_status(deadline_str):
-    """追加：締切日までの残り日数から、ステータス、アイコン、色、速度倍率を計算する純粋関数"""
     if not deadline_str:
         return "normal", "✅", "#33FF57", 0.7  
 

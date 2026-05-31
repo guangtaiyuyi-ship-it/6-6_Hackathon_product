@@ -35,6 +35,12 @@ class TodoApp(tk.Tk):
         deadline_menu.config(font=("Helvetica", 10), bg="white")
         deadline_menu.pack(side="left", padx=5)
 
+        self.categories = ["🛒 スーパー（食材）", "🧼 日用品・雑貨", "✨ 欲しいもの・その他"]
+        self.selected_category = tk.StringVar(value="🛒 スーパー（食材）")
+        category_menu = tk.OptionMenu(entry_frame, self.selected_category, *self.categories)
+        category_menu.config(font=("Helvetica", 10), bg="white")
+        category_menu.pack(side="left", padx=5)
+
         add_button = tk.Button(
             entry_frame,
             text="追加",
@@ -49,7 +55,7 @@ class TodoApp(tk.Tk):
 
         list_label = tk.Label(
             self,
-            text="タスク一覧 (締切状況に応じて色分けされます)",
+            text="買うものリスト (売り場ごとに表示されます)",
             font=("Helvetica", 10, "bold"),
             bg="#f5f5f5",
             fg="#555",
@@ -72,7 +78,6 @@ class TodoApp(tk.Tk):
 
         slider_frame = tk.Frame(self, bg="#f5f5f5")
         slider_frame.pack(fill="x", padx=20, pady=15) 
-        slider_frame.pack(fill="x", padx=20, pady=15)
 
         slider_label = tk.Label(
             slider_frame, text="全体の基本速度:", font=("Helvetica", 10), bg="#f5f5f5"
@@ -110,15 +115,33 @@ class TodoApp(tk.Tk):
             widget.destroy()
 
         todos = todo_store.load_todos()
+        category_frames = {}
+
+        for cat in self.categories:
+            cat_clean = cat.split()[-1]  
+
+            frame = tk.LabelFrame(
+                self.scrollable_frame,
+                text=cat,
+                font=("Helvetica", 11, "bold"),
+                bg="white",
+                fg="#333",
+                padx=10,
+                pady=10,
+            )
+            frame.pack(fill="x", expand=True, padx=10, pady=10)
+            category_frames[cat_clean] = frame
 
         for todo in todos:
             todo_id = todo["id"]
             is_completed = todo["completed"]
             deadline_str = todo.get("deadline", "")
+            todo_cat = todo.get("category", "欲しいもの・その他")
 
             _, icon, alert_color, _ = todo_store.get_deadline_status(deadline_str)
 
-            row_frame = tk.Frame(self.scrollable_frame, bg="white", pady=4)
+            parent_frame = category_frames.get(todo_cat, category_frames["欲しいもの・その他"])
+            row_frame = tk.Frame(parent_frame, bg="white", pady=4)
             row_frame.pack(fill="x", expand=True)
             var = tk.BooleanVar(value=is_completed)
             cb = tk.Checkbutton(
@@ -137,7 +160,10 @@ class TodoApp(tk.Tk):
             text_color = alert_color if not is_completed else "#888888"
             display_text = f"{icon} {todo['text']}"
             if deadline_str and not is_completed:
-                display_text += f" (締切: {deadline_str})"
+                if deadline_str == datetime.now().strftime("%Y-%m-%d"):
+                    display_text += " (今日買う！)"
+                else:
+                    display_text += " (明日買う)"
             label = tk.Label(
                 row_frame,
                 text=display_text,
@@ -165,12 +191,12 @@ class TodoApp(tk.Tk):
         if text.strip():
             selected_menu_text = self.selected_deadline_label.get()
             deadline_date_str = self.deadline_options[selected_menu_text]
-
-            todo_store.add_todo(text, deadline_date_str)
+            selected_cat_text = self.selected_category.get().split()[-1]
+            todo_store.add_todo(text, deadline_date_str, selected_cat_text)
             self.todo_entry.delete(0, tk.END)
             self.refresh_todo_list()
         else:
-            messagebox.showwarning("警告", "タスクを入力してください。")
+            messagebox.showwarning("警告", "買うものを入力してください。")
 
     def on_toggle_click(self, todo_id):
         todo_store.toggle_todo(todo_id)
