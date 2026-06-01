@@ -53,11 +53,34 @@ def remove_todo(todo_id):
     return todos
 
 
+def restore_todo(todo_id):
+    todos = load_todos()
+    for todo in todos:
+        if todo["id"] == todo_id:
+            todo["deleted"] = False
+            break
+    save_todos(todos)
+    return todos
+
+
 def clear_trash():
     todos = load_todos()
     todos = [todo for todo in todos if not todo["deleted"]]
     save_todos(todos)
     return todos
+
+
+def update_todo_text(todo_id, new_text):
+    if not new_text.strip():
+        return load_todos()
+    todos = load_todos()
+    for todo in todos:
+        if todo["id"] == todo_id:
+            todo["text"] = new_text
+            break
+    save_todos(todos)
+    return todos
+
 
 def get_deadline_status(deadline_str):
     if not deadline_str:

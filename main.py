@@ -9,35 +9,39 @@ class TodoApp(tk.Tk):
     def __init__(self):
         super().__init__()
 
-        self.title("TODO スクリーンセイバー")
+        self.title("買い物リストスクリーンセイバー")
         self.geometry("650x800")
         self.configure(bg="#f5f5f5")
 
         entry_frame = tk.Frame(self, bg="#f5f5f5")
-        entry_frame.pack(pady=20, fill="x", padx=20)
-
+        entry_frame.pack(pady=15, fill="x", padx=20)
         self.todo_entry = tk.Entry(
             entry_frame, font=("Helvetica", 14), bd=2, relief="groove"
         )
         self.todo_entry.pack(side="left", fill="x", expand=True, ipady=4)
+        self.todo_entry.bind("<Return>", lambda event: self.on_add_click())
 
         self.deadline_options = {
-            "今日が締切": (datetime.now()).strftime("%Y-%m-%d"),
-            "1日後（明日）": (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d"),
-            "2日後": (datetime.now() + timedelta(days=2)).strftime("%Y-%m-%d"),
-            "3日以上先 / なし": "",
+            "今日買う": (datetime.now()).strftime("%Y-%m-%d"),
+            "明日買う": (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d"),
+            "今度でいい": "",
         }
-
-        self.selected_deadline_label = tk.StringVar(value="3日以上先 / なし")
+        self.selected_deadline_label = tk.StringVar(value="今度でいい")
         deadline_menu = tk.OptionMenu(
             entry_frame, self.selected_deadline_label, *self.deadline_options.keys()
         )
         deadline_menu.config(font=("Helvetica", 10), bg="white")
         deadline_menu.pack(side="left", padx=5)
 
-        self.categories = ["🛒 スーパー（食材）", "🧼 日用品・雑貨", "✨ 欲しいもの・その他"]
+        self.categories = [
+            "🛒 スーパー（食材）",
+            "🧼 日用品・雑貨",
+            "✨ 欲しいもの・その他",
+        ]
         self.selected_category = tk.StringVar(value="🛒 スーパー（食材）")
-        category_menu = tk.OptionMenu(entry_frame, self.selected_category, *self.categories)
+        category_menu = tk.OptionMenu(
+            entry_frame, self.selected_category, *self.categories
+        )
         category_menu.config(font=("Helvetica", 10), bg="white")
         category_menu.pack(side="left", padx=5)
 
@@ -55,7 +59,7 @@ class TodoApp(tk.Tk):
 
         list_label = tk.Label(
             self,
-            text="買うものリスト (売り場ごとに表示されます)",
+            text="買うものリスト (タスク名をダブルクリックでその場で編集できます)",
             font=("Helvetica", 10, "bold"),
             bg="#f5f5f5",
             fg="#555",
@@ -75,19 +79,34 @@ class TodoApp(tk.Tk):
 
         self.canvas.pack(side="top", fill="both", expand=True, padx=20, pady=5)
         scrollbar.pack(side="right", fill="y")
-        
-        self.trash_frame = tk.LabelFrame(self, text="🗑️ ゴミ箱（一時削除）", font=("Helvetica", 11, "bold"), bg="#eeeeee", fg="#666", padx=10, pady=5)
+
+        self.trash_frame = tk.LabelFrame(
+            self,
+            text="🗑️ ゴミ箱（一時削除）",
+            font=("Helvetica", 11, "bold"),
+            bg="#eeeeee",
+            fg="#666",
+            padx=10,
+            pady=5,
+        )
         self.trash_frame.pack(fill="x", padx=20, pady=10)
-        
-        clear_trash_btn = tk.Button(self.trash_frame, text="ゴミ箱を空にする", font=("Helvetica", 9), bg="#e0e0e0", fg="#333", bd=1, command=self.on_clear_trash_click)
+
+        clear_trash_btn = tk.Button(
+            self.trash_frame,
+            text="ゴミ箱を空にする",
+            font=("Helvetica", 9),
+            bg="#e0e0e0",
+            fg="#333",
+            bd=1,
+            command=self.on_clear_trash_click,
+        )
         clear_trash_btn.pack(anchor="e")
-        
-        
+
         self.trash_items_frame = tk.Frame(self.trash_frame, bg="#eeeeee")
         self.trash_items_frame.pack(fill="x", expand=True, pady=5)
 
         slider_frame = tk.Frame(self, bg="#f5f5f5")
-        slider_frame.pack(fill="x", padx=20, pady=5) 
+        slider_frame.pack(fill="x", padx=20, pady=5)
 
         slider_label = tk.Label(
             slider_frame, text="全体の基本速度:", font=("Helvetica", 10), bg="#f5f5f5"
@@ -116,14 +135,13 @@ class TodoApp(tk.Tk):
             pady=10,
             command=self.on_start_click,
         )
-        self.start_button.pack(fill="x", padx=20, pady=20)
+        self.start_button.pack(fill="x", padx=20, pady=15)
 
         self.refresh_todo_list()
 
     def refresh_todo_list(self):
         for widget in self.scrollable_frame.winfo_children():
             widget.destroy()
-
         for widget in self.trash_items_frame.winfo_children():
             widget.destroy()
 
@@ -131,8 +149,7 @@ class TodoApp(tk.Tk):
         category_frames = {}
 
         for cat in self.categories:
-            cat_clean = cat.split()[-1]  
-
+            cat_clean = cat.split()[-1]
             frame = tk.LabelFrame(
                 self.scrollable_frame,
                 text=cat,
@@ -149,50 +166,66 @@ class TodoApp(tk.Tk):
             todo_id = todo["id"]
             is_completed = todo["completed"]
             deadline_str = todo.get("deadline", "")
-            todo_cat = todo.get("category", "欲しいもの・その他")
+            todo_cat = todo.get("category", "その他")
             is_deleted = todo.get("deleted", False)
 
-        if is_deleted:
+            if is_deleted:
                 row_frame = tk.Frame(self.trash_items_frame, bg="#eeeeee", pady=2)
                 row_frame.pack(fill="x", expand=True)
-                
-                label = tk.Label(row_frame, text=f"[{todo_cat}] {todo['text']}", font=("Helvetica", 11), fg="#888888", bg="#eeeeee", anchor="w")
+
+                label = tk.Label(
+                    row_frame,
+                    text=f"[{todo_cat}] {todo['text']}",
+                    font=("Helvetica", 11),
+                    fg="#888888",
+                    bg="#eeeeee",
+                    anchor="w",
+                )
                 label.pack(side="left", fill="x", expand=True)
-                
-                
+
                 restore_btn = tk.Button(
-                    row_frame, text="↩️ 復元", fg="#2196F3", bg="#eeeeee", bd=0,
-                    font=("Helvetica", 10, "bold"), command=lambda tid=todo_id: self.on_restore_click(tid)
+                    row_frame,
+                    text="↩️ 復元",
+                    fg="#2196F3",
+                    bg="#eeeeee",
+                    bd=0,
+                    font=("Helvetica", 10, "bold"),
+                    command=lambda tid=todo_id: self.on_restore_click(tid),
                 )
                 restore_btn.pack(side="right", padx=10)
                 continue
 
             _, icon, alert_color, _ = todo_store.get_deadline_status(deadline_str)
+            parent_frame = category_frames.get(
+                todo_cat, category_frames["欲しいもの・その他"]
+            )
 
-            parent_frame = category_frames.get(todo_cat, category_frames["欲しいもの・その他"])
             row_frame = tk.Frame(parent_frame, bg="white", pady=4)
             row_frame.pack(fill="x", expand=True)
-            var = tk.BooleanVar(value=is_completed)
+
             cb = tk.Checkbutton(
                 row_frame,
-                variable=var,
                 bg="white",
                 activebackground="white",
+                variable=tk.BooleanVar(value=is_completed),
                 command=lambda tid=todo_id: self.on_toggle_click(tid),
             )
             cb.pack(side="left", padx=5)
+
             text_font = (
                 ("Helvetica", 12, "bold")
                 if not is_completed
                 else ("Helvetica", 12, "overstrike")
             )
             text_color = alert_color if not is_completed else "#888888"
+
             display_text = f"{icon} {todo['text']}"
             if deadline_str and not is_completed:
                 if deadline_str == datetime.now().strftime("%Y-%m-%d"):
                     display_text += " (今日買う！)"
                 else:
                     display_text += " (明日買う)"
+
             label = tk.Label(
                 row_frame,
                 text=display_text,
@@ -202,6 +235,14 @@ class TodoApp(tk.Tk):
                 anchor="w",
             )
             label.pack(side="left", fill="x", expand=True)
+
+            if not is_completed:
+                label.bind(
+                    "<Double-1>",
+                    lambda event, label_obj=label, tid=todo_id, current_val=todo[
+                        "text"
+                    ]: self.enable_inline_edit(label_obj, tid, current_val),
+                )
 
             del_btn = tk.Button(
                 row_frame,
@@ -215,12 +256,37 @@ class TodoApp(tk.Tk):
             )
             del_btn.pack(side="right", padx=10)
 
+    def enable_inline_edit(self, label_obj, todo_id, current_text):
+        parent = label_obj.master
+        label_obj.pack_forget()
+
+        edit_entry = tk.Entry(parent, font=("Helvetica", 12), bd=1, relief="solid")
+        edit_entry.insert(0, current_text)
+        edit_entry.pack(side="left", fill="x", expand=True, padx=5)
+        edit_entry.focus_set()
+
+        edit_entry.bind(
+            "<Return>", lambda e: self.save_inline_edit(edit_entry, todo_id)
+        )
+        edit_entry.bind(
+            "<FocusOut>", lambda e: self.save_inline_edit(edit_entry, todo_id)
+        )
+
+    def save_inline_edit(self, entry_obj, todo_id):
+        new_text = entry_obj.get()
+        if new_text.strip():
+            todo_store.update_todo_text(todo_id, new_text)
+
+        entry_obj.destroy()
+        self.refresh_todo_list()
+
     def on_add_click(self):
         text = self.todo_entry.get()
         if text.strip():
             selected_menu_text = self.selected_deadline_label.get()
             deadline_date_str = self.deadline_options[selected_menu_text]
             selected_cat_text = self.selected_category.get().split()[-1]
+
             todo_store.add_todo(text, deadline_date_str, selected_cat_text)
             self.todo_entry.delete(0, tk.END)
             self.refresh_todo_list()
@@ -240,7 +306,9 @@ class TodoApp(tk.Tk):
         self.refresh_todo_list()
 
     def on_clear_trash_click(self):
-        if messagebox.askyesno("確認", "ゴミ箱の中身を完全に消去しますか？（復元できなくなります）"):
+        if messagebox.askyesno(
+            "確認", "ゴミ箱の中身を完全に消去しますか？（復元できなくなります）"
+        ):
             todo_store.clear_trash()
             self.refresh_todo_list()
 
@@ -248,6 +316,8 @@ class TodoApp(tk.Tk):
         speed = self.speed_slider.get()
         ScreensaverWindow(self, speed_modifier=speed)
 
+
 if __name__ == "__main__":
     app = TodoApp()
     app.mainloop()
+    
