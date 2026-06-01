@@ -10,7 +10,7 @@ class TodoApp(tk.Tk):
         super().__init__()
 
         self.title("TODO スクリーンセイバー")
-        self.geometry("600x650")
+        self.geometry("650x800")
         self.configure(bg="#f5f5f5")
 
         entry_frame = tk.Frame(self, bg="#f5f5f5")
@@ -75,9 +75,19 @@ class TodoApp(tk.Tk):
 
         self.canvas.pack(side="top", fill="both", expand=True, padx=20, pady=5)
         scrollbar.pack(side="right", fill="y")
+        
+        self.trash_frame = tk.LabelFrame(self, text="🗑️ ゴミ箱（一時削除）", font=("Helvetica", 11, "bold"), bg="#eeeeee", fg="#666", padx=10, pady=5)
+        self.trash_frame.pack(fill="x", padx=20, pady=10)
+        
+        clear_trash_btn = tk.Button(self.trash_frame, text="ゴミ箱を空にする", font=("Helvetica", 9), bg="#e0e0e0", fg="#333", bd=1, command=self.on_clear_trash_click)
+        clear_trash_btn.pack(anchor="e")
+        
+        
+        self.trash_items_frame = tk.Frame(self.trash_frame, bg="#eeeeee")
+        self.trash_items_frame.pack(fill="x", expand=True, pady=5)
 
         slider_frame = tk.Frame(self, bg="#f5f5f5")
-        slider_frame.pack(fill="x", padx=20, pady=15) 
+        slider_frame.pack(fill="x", padx=20, pady=5) 
 
         slider_label = tk.Label(
             slider_frame, text="全体の基本速度:", font=("Helvetica", 10), bg="#f5f5f5"
@@ -114,6 +124,9 @@ class TodoApp(tk.Tk):
         for widget in self.scrollable_frame.winfo_children():
             widget.destroy()
 
+        for widget in self.trash_items_frame.winfo_children():
+            widget.destroy()
+
         todos = todo_store.load_todos()
         category_frames = {}
 
@@ -129,7 +142,7 @@ class TodoApp(tk.Tk):
                 padx=10,
                 pady=10,
             )
-            frame.pack(fill="x", expand=True, padx=10, pady=10)
+            frame.pack(fill="x", expand=True, padx=10, pady=5)
             category_frames[cat_clean] = frame
 
         for todo in todos:
@@ -137,6 +150,22 @@ class TodoApp(tk.Tk):
             is_completed = todo["completed"]
             deadline_str = todo.get("deadline", "")
             todo_cat = todo.get("category", "欲しいもの・その他")
+            is_deleted = todo.get("deleted", False)
+
+        if is_deleted:
+                row_frame = tk.Frame(self.trash_items_frame, bg="#eeeeee", pady=2)
+                row_frame.pack(fill="x", expand=True)
+                
+                label = tk.Label(row_frame, text=f"[{todo_cat}] {todo['text']}", font=("Helvetica", 11), fg="#888888", bg="#eeeeee", anchor="w")
+                label.pack(side="left", fill="x", expand=True)
+                
+                
+                restore_btn = tk.Button(
+                    row_frame, text="↩️ 復元", fg="#2196F3", bg="#eeeeee", bd=0,
+                    font=("Helvetica", 10, "bold"), command=lambda tid=todo_id: self.on_restore_click(tid)
+                )
+                restore_btn.pack(side="right", padx=10)
+                continue
 
             _, icon, alert_color, _ = todo_store.get_deadline_status(deadline_str)
 
@@ -205,6 +234,15 @@ class TodoApp(tk.Tk):
     def on_delete_click(self, todo_id):
         todo_store.remove_todo(todo_id)
         self.refresh_todo_list()
+
+    def on_restore_click(self, todo_id):
+        todo_store.restore_todo(todo_id)
+        self.refresh_todo_list()
+
+    def on_clear_trash_click(self):
+        if messagebox.askyesno("確認", "ゴミ箱の中身を完全に消去しますか？（復元できなくなります）"):
+            todo_store.clear_trash()
+            self.refresh_todo_list()
 
     def on_start_click(self):
         speed = self.speed_slider.get()

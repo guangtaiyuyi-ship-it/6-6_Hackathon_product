@@ -27,7 +27,8 @@ def add_todo(text, deadline_str="", category="その他"):
         "text": text,
         "completed": False,  
         "deadline": deadline_str,
-        "category": category
+        "category": category,
+        "deleted": False
     }
     todos.append(new_todo)
     save_todos(todos)
@@ -44,7 +45,17 @@ def toggle_todo(todo_id):
 
 def remove_todo(todo_id):
     todos = load_todos()
-    todos = [todo for todo in todos if todo["id"] != todo_id]
+    for todo in todos:
+        if todo["id"] == todo_id:
+            todo["deleted"] = True
+            break
+    save_todos(todos)
+    return todos
+
+
+def clear_trash():
+    todos = load_todos()
+    todos = [todo for todo in todos if not todo["deleted"]]
     save_todos(todos)
     return todos
 
