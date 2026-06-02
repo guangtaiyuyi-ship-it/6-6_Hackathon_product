@@ -39,14 +39,20 @@ class FloatingItem:
         x1, y1, x2, y2 = self.canvas.bbox(self.id)
         canvas_w = self.canvas.winfo_width()
         canvas_h = self.canvas.winfo_height()
+        collided = False
 
         if x1 + self.dx < 0 or x2 + self.dx > canvas_w:
-            self.dx = -self.dx  
+            self.dx = -self.dx
+            collided = True  
             self.change_color()  
 
         if y1 + self.dy < 0 or y2 + self.dy > canvas_h:
-            self.dy = -self.dy  
-            self.change_color()  
+            self.dy = -self.dy
+            collided = True
+            self.change_color() 
+
+        if collided:
+            self.canvas.bell() 
 
         self.canvas.move(self.id, self.dx, self.dy)
 
