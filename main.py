@@ -10,16 +10,15 @@ class TodoApp(tk.Tk):
         super().__init__()
 
         self.title("買い物リストスクリーンセイバー")
-        self.geometry("650x850")
+        self.geometry("650x700")
         self.configure(bg="#f5f5f5")
-        self.categories = ["🛒 スーパー","🧼 日用品・雑貨","✨　その他"]
+        self.categories = ["🛒 スーパー","🧼 日用品・雑貨","✨ その他"]
         self.current_filter = tk.StringVar(value="すべて")
 
         entry_frame = tk.Frame(self, bg="#f5f5f5")
-        entry_frame.pack(pady=15, fill="x", padx=20)
+        entry_frame.pack(pady=(15, 5), fill="x", padx=20)
         self.todo_entry = tk.Entry(
-            entry_frame, font=("Helvetica", 14), bd=2, relief="groove"
-        )
+            entry_frame, font=("Helvetica", 14), bd=2, relief="groove")
         self.todo_entry.pack(side="left", fill="x", expand=True, ipady=4)
         self.todo_entry.bind("<Return>", lambda event: self.on_add_click())
 
@@ -59,7 +58,7 @@ class TodoApp(tk.Tk):
         )
         add_button.pack(side="right", padx=5)
 
-        filter_frame = tk.Frame(self, bg="#e8e8e8", pady=5)
+        filter_frame = tk.Frame(self, bg="#e8e8e8", pady=2)
         filter_frame.pack(fill="x", padx=20, pady=5)
 
         filter_label = tk.Label(filter_frame, text="🔍 絞り込み:", font=("Helvetica", 10, "bold"), bg="#e8e8e8", fg="#555")
@@ -82,7 +81,7 @@ class TodoApp(tk.Tk):
             bg="#f5f5f5",
             fg="#555",
         )
-        list_label.pack(anchor="w", padx=20)
+        list_label.pack(anchor="w", padx=20, pady=(5,0))
 
         self.canvas = tk.Canvas(self, bg="white", bd=2, relief="sunken")
         scrollbar = tk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
@@ -105,7 +104,7 @@ class TodoApp(tk.Tk):
             bg="#eeeeee",
             fg="#666",
             padx=10,
-            pady=5,
+            pady=2,
         )
         self.trash_frame.pack(fill="x", padx=20, pady=10)
 
@@ -121,27 +120,7 @@ class TodoApp(tk.Tk):
         clear_trash_btn.pack(anchor="e")
 
         self.trash_items_frame = tk.Frame(self.trash_frame, bg="#eeeeee")
-        self.trash_items_frame.pack(fill="x", expand=True, pady=5)
-
-        slider_frame = tk.Frame(self, bg="#f5f5f5")
-        slider_frame.pack(fill="x", padx=20, pady=5)
-
-        slider_label = tk.Label(
-            slider_frame, text="全体の基本速度:", font=("Helvetica", 10), bg="#f5f5f5"
-        )
-        slider_label.pack(side="left")
-
-        self.speed_slider = tk.Scale(
-            slider_frame,
-            from_=0.5,
-            to=3.0,
-            resolution=0.1,
-            orient="horizontal",
-            bg="#f5f5f5",
-            bd=0,
-        )
-        self.speed_slider.set(1.0)
-        self.speed_slider.pack(side="right", fill="x", expand=True, padx=10)
+        self.trash_items_frame.pack(fill="x", expand=True, pady=2)
 
         self.start_button = tk.Button(
             self,
@@ -151,9 +130,8 @@ class TodoApp(tk.Tk):
             fg="white",
             bd=0,
             pady=10,
-            command=self.on_start_click,
-        )
-        self.start_button.pack(fill="x", padx=20, pady=15)
+            command=self.on_start_click)
+        self.start_button.pack(fill="x", padx=20, pady=(10, 25))
 
         self.refresh_todo_list()
 
@@ -329,9 +307,8 @@ class TodoApp(tk.Tk):
             self.refresh_todo_list()
 
     def on_start_click(self):
-        speed = self.speed_slider.get()
         current_filter_val = self.current_filter.get()
-        ScreensaverWindow(self, speed_modifier=speed, current_filter=current_filter_val)
+        ScreensaverWindow(self, speed_modifier=1.0, current_filter=current_filter_val)
 
 if __name__ == "__main__":
     app = TodoApp()
