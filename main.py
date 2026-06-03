@@ -10,8 +10,9 @@ class TodoApp(tk.Tk):
         super().__init__()
 
         self.title("買い物リストスクリーンセイバー")
-        self.geometry("650x800")
+        self.geometry("650x850")
         self.configure(bg="#f5f5f5")
+        self.current_filter = tk.StringVar(value="すべて")
 
         entry_frame = tk.Frame(self, bg="#f5f5f5")
         entry_frame.pack(pady=15, fill="x", padx=20)
@@ -34,11 +35,11 @@ class TodoApp(tk.Tk):
         deadline_menu.pack(side="left", padx=5)
 
         self.categories = [
-            "🛒 スーパー（食材）",
+            "🛒 スーパー",
             "🧼 日用品・雑貨",
-            "✨ 欲しいもの・その他",
+            "✨ その他",
         ]
-        self.selected_category = tk.StringVar(value="🛒 スーパー（食材）")
+        self.selected_category = tk.StringVar(value="🛒 スーパー")
         category_menu = tk.OptionMenu(
             entry_frame, self.selected_category, *self.categories
         )
@@ -56,6 +57,23 @@ class TodoApp(tk.Tk):
             command=self.on_add_click,
         )
         add_button.pack(side="right", padx=5)
+
+        filter_frame = tk.Frame(self, bg="#e0e0e0", pady=5) # 背景を少し濃くして目立たせる
+        filter_frame.configure(bg="#e8e8e8")
+        filter_frame.pack(fill="x", padx=20, pady=5)
+
+        filter_label = tk.Label(filter_frame, text="🔍 絞り込み:", font=("Helvetica", 10, "bold"), bg="#e8e8e8", fg="#555")
+        filter_label.pack(side="left", padx=10, pady=5)
+
+        filter_options = ["すべて"] + [cat.split()[-1] for cat in self.categories]
+        for opt in filter_options:
+            rb = tk.Radiobutton(
+                filter_frame, text=opt, value=opt, variable=self.current_filter,
+                indicatoron=False, font=("Helvetica", 10), bg="white", fg="#333",
+                selectcolor="#2196F3", activebackground="#2196F3", bd=1, relief="raised",
+                padx=10, command=self.refresh_todo_list 
+            )
+            rb.pack(side="left", padx=4, pady=5)
 
         list_label = tk.Label(
             self,
@@ -147,20 +165,14 @@ class TodoApp(tk.Tk):
 
         todos = todo_store.load_todos()
         category_frames = {}
+        active_filter = self.current_filter.get()
 
         for cat in self.categories:
             cat_clean = cat.split()[-1]
-            frame = tk.LabelFrame(
-                self.scrollable_frame,
-                text=cat,
-                font=("Helvetica", 11, "bold"),
-                bg="white",
-                fg="#333",
-                padx=10,
-                pady=10,
-            )
-            frame.pack(fill="x", expand=True, padx=10, pady=5)
-            category_frames[cat_clean] = frame
+            if active_filter == "すべて" or active_filter == cat_clean:
+                frame = tk.LabelFrame(self.scrollable_frame, text=cat, font=("Helvetica", 11, "bold"), bg="white", fg="#333", padx=10, pady=10)
+                frame.pack(fill="x", expand=True, padx=10, pady=5)
+                category_frames[cat_clean] = frame
 
         for todo in todos:
             todo_id = todo["id"]
@@ -168,6 +180,9 @@ class TodoApp(tk.Tk):
             deadline_str = todo.get("deadline", "")
             todo_cat = todo.get("category", "その他")
             is_deleted = todo.get("deleted", False)
+
+            if active_filter != "すべて" and active_filter != todo_cat:
+                continue
 
             if is_deleted:
                 row_frame = tk.Frame(self.trash_items_frame, bg="#eeeeee", pady=2)
@@ -196,10 +211,11 @@ class TodoApp(tk.Tk):
                 continue
 
             _, icon, alert_color, _ = todo_store.get_deadline_status(deadline_str)
-            parent_frame = category_frames.get(
-                todo_cat, category_frames["欲しいもの・その他"]
-            )
+            parent_frame = category_frames.get(todo_cat)
 
+            if not parent_frame:
+                continue
+            
             row_frame = tk.Frame(parent_frame, bg="white", pady=4)
             row_frame.pack(fill="x", expand=True)
 
@@ -320,4 +336,3 @@ class TodoApp(tk.Tk):
 if __name__ == "__main__":
     app = TodoApp()
     app.mainloop()
-    
