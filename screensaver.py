@@ -62,7 +62,8 @@ class FloatingItem:
 
 
 class ScreensaverWindow(tk.Toplevel):
-    def __init__(self, parent, speed_modifier=1.0):
+
+    def __init__(self, parent, speed_modifier=1.0, current_filter="すべて"):
         super().__init__(parent)
         self.speed_modifier = speed_modifier
         self.attributes("-fullscreen", True)
@@ -72,19 +73,27 @@ class ScreensaverWindow(tk.Toplevel):
         all_todos = todo_store.load_todos()
         self.items = []
         for todo in all_todos:
-            if not todo["completed"]:
+            if not todo["completed"] and not todo.get("deleted", False):
+                todo_cat = todo.get("category", "その他")
+                if current_filter != "すべて" and current_filter != todo_cat:
+                    continue
                 if hasattr(todo_store, "get_deadline_status"):
                     _, icon, color, item_speed_mult = todo_store.get_deadline_status(todo.get("deadline", ""))
                 else:
                     icon, color, item_speed_mult = "✅", "#33FF57", 1.0
-                category_tag = f"[{todo.get('category', 'その他')}] "
+                category_tag = f"[{todo_cat}] "
                 display_text = f"{icon} {category_tag}{todo['text']}"
 
                 item = FloatingItem(self.canvas, display_text, color, item_speed_mult)
                 self.items.append(item)
 
         if not self.items:
-            self.items = [FloatingItem(self.canvas, "🎉 すべてのタスクが完了しました！", "#33FF57", 1.0)]
+            msg = (
+                f"🎉 【{current_filter}】のタスクはすべて完了、または登録されていません！"
+                if current_filter != "すべて"
+                else "🎉 すべてのタスクが完了しました！"
+            )
+            self.items = [FloatingItem(self.canvas, msg, "#33FF57", 1.0)]
 
         self.bind("<Escape>", self.close_screensaver) 
         self.bind("<Return>", self.close_screensaver)  

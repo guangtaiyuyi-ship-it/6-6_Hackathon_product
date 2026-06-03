@@ -12,6 +12,7 @@ class TodoApp(tk.Tk):
         self.title("買い物リストスクリーンセイバー")
         self.geometry("650x850")
         self.configure(bg="#f5f5f5")
+        self.categories = ["🛒 スーパー","🧼 日用品・雑貨","✨　その他"]
         self.current_filter = tk.StringVar(value="すべて")
 
         entry_frame = tk.Frame(self, bg="#f5f5f5")
@@ -58,8 +59,7 @@ class TodoApp(tk.Tk):
         )
         add_button.pack(side="right", padx=5)
 
-        filter_frame = tk.Frame(self, bg="#e0e0e0", pady=5) # 背景を少し濃くして目立たせる
-        filter_frame.configure(bg="#e8e8e8")
+        filter_frame = tk.Frame(self, bg="#e8e8e8", pady=5)
         filter_frame.pack(fill="x", padx=20, pady=5)
 
         filter_label = tk.Label(filter_frame, text="🔍 絞り込み:", font=("Helvetica", 10, "bold"), bg="#e8e8e8", fg="#555")
@@ -215,7 +215,7 @@ class TodoApp(tk.Tk):
 
             if not parent_frame:
                 continue
-            
+
             row_frame = tk.Frame(parent_frame, bg="white", pady=4)
             row_frame.pack(fill="x", expand=True)
 
@@ -330,8 +330,8 @@ class TodoApp(tk.Tk):
 
     def on_start_click(self):
         speed = self.speed_slider.get()
-        ScreensaverWindow(self, speed_modifier=speed)
-
+        current_filter_val = self.current_filter.get()
+        ScreensaverWindow(self, speed_modifier=speed, current_filter=current_filter_val)
 
 if __name__ == "__main__":
     app = TodoApp()
