@@ -1,6 +1,29 @@
-# Pythonが自動生成するキャッシュフォルダ
+# Pythonのキャッシュファイル（コンパイルデータなど）
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
 
-# ユーザーのローカルデータ
+# 仮想環境（仮想環境フォルダを丸ごと除外）
+venv/
+.venv/
+env/
+ENV/
+
+# ローカルの開発用データファイル
+# （チームメンバーごとに買うものが違うため、データベースファイルは除外します）
 todos.json
+
+# エディタやIDEの設定ファイル
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# OSが自動生成する一時ファイル
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
