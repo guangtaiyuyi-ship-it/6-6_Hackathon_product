@@ -95,9 +95,7 @@ def get_deadline_status(deadline_str):
             return "emergency", "🚨", "#FF3333", 3.0  
         elif days_left == 1:
             return "warning", "⏳", "#FF9900", 2.0  
-        elif days_left == 2:
-            return "alert", "🗓️", "#E6C300", 1.0  
         else:
-            return "normal", "✅", "#33FF57", 0.7  
+            return "normal", "✅", "#33FF57", 1.0  
     except ValueError:
-        return "normal", "✅", "#33FF57", 0.7
+        return "normal", "✅", "#33FF57", 1.0
