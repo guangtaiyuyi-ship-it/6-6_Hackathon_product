@@ -14,6 +14,7 @@ class TodoApp(tk.Tk):
         self.configure(bg="#f5f5f5")
         self.categories = ["🛒 スーパー","🧼 日用品・雑貨","✨ その他"]
         self.current_filter = tk.StringVar(value="すべて")
+        self.check_vars = {}
 
         entry_frame = tk.Frame(self, bg="#f5f5f5")
         entry_frame.pack(pady=(15, 5), fill="x", padx=20)
@@ -196,59 +197,37 @@ class TodoApp(tk.Tk):
 
             row_frame = tk.Frame(parent_frame, bg="white", pady=4)
             row_frame.pack(fill="x", expand=True)
+            self.check_vars[todo_id] = tk.BooleanVar(value=False)
 
             cb = tk.Checkbutton(
                 row_frame,
                 bg="white",
                 activebackground="white",
-                variable=tk.BooleanVar(value=is_completed),
-                command=lambda tid=todo_id: self.on_toggle_click(tid),
+                variable=self.check_vars[todo_id],
+                command=lambda tid=todo_id: self.on_delete_click(tid),
             )
             cb.pack(side="left", padx=5)
 
-            text_font = (
-                ("Helvetica", 12, "bold")
-                if not is_completed
-                else ("Helvetica", 12, "overstrike")
-            )
-            text_color = alert_color if not is_completed else "#888888"
-
             display_text = f"{icon} {todo['text']}"
-            if deadline_str and not is_completed:
-                if deadline_str == datetime.now().strftime("%Y-%m-%d"):
-                    display_text += " (今日買う！)"
-                else:
-                    display_text += " (明日買う)"
+            if deadline_str:
+                display_text += " (今日買う！)" if deadline_str == datetime.now().strftime("%Y-%m-%d") else " (明日買う)"
 
             label = tk.Label(
                 row_frame,
                 text=display_text,
-                font=text_font,
-                fg=text_color,
+                font=("Helvetica", 12, "bold"),
+                fg=alert_color,
                 bg="white",
                 anchor="w",
             )
             label.pack(side="left", fill="x", expand=True)
 
-            if not is_completed:
-                label.bind(
-                    "<Double-1>",
-                    lambda event, label_obj=label, tid=todo_id, current_val=todo[
-                        "text"
-                    ]: self.enable_inline_edit(label_obj, tid, current_val),
-                )
-
-            del_btn = tk.Button(
-                row_frame,
-                text="✕",
-                fg="#FF5252",
-                bg="white",
-                bd=0,
-                activebackground="#ffebee",
-                font=("Helvetica", 10, "bold"),
-                command=lambda tid=todo_id: self.on_delete_click(tid),
+            label.bind(
+                "<Double-1>",
+                lambda event, l=label, tid=todo_id, v=todo[
+                    "text"
+                ]: self.enable_inline_edit(l, tid, v),
             )
-            del_btn.pack(side="right", padx=10)
 
     def enable_inline_edit(self, label_obj, todo_id, current_text):
         parent = label_obj.master
